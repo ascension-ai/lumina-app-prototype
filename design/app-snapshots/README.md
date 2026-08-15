@@ -14,7 +14,6 @@ Open `index.html` in a browser or serve this folder with any static web server.
 
 - `index.html?scene=1` — Morning brief
 - `index.html?scene=2` — Workflow compiler
-- `index.html?scene=3` — Commitment tracker
-- `index.html?scene=4` — Ambient answers
+- `index.html?scene=3` — Ambient answers
 
 Adding a `scene` query parameter opens the selected scene paused, which makes consistent screenshots easier.

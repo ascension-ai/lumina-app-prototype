@@ -17,23 +17,25 @@ coming back with the tools it used.
 
 ## Product walkthrough
 
-Four annotated scenes covering the main flows, if you'd rather read than watch. No install,
-no build — it's a single self-contained page.
+Three scenes covering the main flows, if you'd rather read than watch. The page they come
+from is animated and self-contained — no install, no build.
 
-**[▶ Open the snapshot studio](https://ascension-ai.github.io/lumina-app-prototype/design/app-snapshots/)**
+**Morning brief** — the feed as a live intelligence stream: what ran overnight, what needs you
 
-| Scene | What it shows |
-|---|---|
-| **Morning brief** | The feed as a live intelligence stream — what ran overnight and what needs you |
-| **Workflow compiler** | Plain-English intent turning into an inspectable workflow |
-| **Commitment tracker** | Promises pulled out of conversation and given dates |
-| **Ambient answers** | The bar answering from anywhere, without switching apps |
+![Morning brief](design/app-snapshots/img/scene1.svg)
 
-Scene tabs or arrow keys to navigate, Space to pause, `?scene=2` to open one directly.
+**Workflow compiler** — plain-English intent becoming an inspectable, schedulable workflow
 
-> Needs GitHub Pages enabled (*Settings → Pages → Deploy from branch → `main` / root*).
-> Until then: [render it via htmlpreview](https://htmlpreview.github.io/?https://github.com/ascension-ai/lumina-app-prototype/blob/main/design/app-snapshots/index.html),
-> or clone and open `design/app-snapshots/index.html` in a browser.
+![Workflow compiler](design/app-snapshots/img/scene2.svg)
+
+**Ambient answers** — the bar answering from anywhere, without switching apps
+
+![Ambient answers](design/app-snapshots/img/scene3.svg)
+
+These are stills. For the animated version open `design/app-snapshots/index.html` in any
+browser — arrow keys to navigate, Space to pause, `?scene=2` to jump straight to one — or
+[view it rendered](https://htmlpreview.github.io/?https://github.com/ascension-ai/lumina-app-prototype/blob/main/design/app-snapshots/index.html)
+without cloning.
 
 ---
 
