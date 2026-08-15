@@ -268,7 +268,7 @@ class MeetingsSearch {
         'Search pre-downloaded meeting recordings from olivbot Slack channels.',
         'Two modes: (1) scored search when `query` is provided, (2) full-population list when `list_all: true`.',
         '',
-        'Use scored search for targeted lookups (account name, topic, person). Use `list_all: true` for framework scoring or aggregation across every meeting in one or more channels — required for MEDDPIC / BANT / SPIN / per-account rollups.',
+        'Use scored search for targeted lookups (account name, topic, person). Use `list_all: true` when you need the full population rather than the top matches — for example when aggregating or comparing across every meeting in one or more channels.',
         '',
         'Channels (match by substring, case-insensitive): `kam-india`, `ent-sales-india`, `csm`, `support`, `product`. Pass one via `channel` or several via `channels: ["csm", "kam-india"]`.',
         '',

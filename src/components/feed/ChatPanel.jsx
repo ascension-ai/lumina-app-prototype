@@ -37,7 +37,8 @@ function renderMarkdown(text) {
   });
 }
 
-const RE_ANALYTICAL_HINT = /\b(meddpicc?|bant|spin|spiced|how\s+many|across|per\s+(account|rep|channel|company)|compare|analyz\w*|aggregate|roll[- ]?up|score|evaluate|framework|qualification|only\s+(recordings?|meetings?|calls?)|recordings?\s+only|meetings?\s+only)\b/i;
+// Local hint used only to choose the loader copy; the real routing happens server-side.
+const RE_ANALYTICAL_HINT = /\b(how\s+many|across|compare|analyz\w*|aggregate|score|evaluate|framework)\b/i;
 
 function modelLabel(model) {
   if (!model) return 'Haiku';

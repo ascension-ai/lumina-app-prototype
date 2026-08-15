@@ -15,6 +15,26 @@ recordings.
 [▶ demo.mp4](demo.mp4) — 28s: waking the bar, asking about an account, and the answer
 coming back with the tools it used.
 
+## Product walkthrough
+
+Four annotated scenes covering the main flows, if you'd rather read than watch. No install,
+no build — it's a single self-contained page.
+
+**[▶ Open the snapshot studio](https://ascension-ai.github.io/lumina-app-prototype/design/app-snapshots/)**
+
+| Scene | What it shows |
+|---|---|
+| **Morning brief** | The feed as a live intelligence stream — what ran overnight and what needs you |
+| **Workflow compiler** | Plain-English intent turning into an inspectable workflow |
+| **Commitment tracker** | Promises pulled out of conversation and given dates |
+| **Ambient answers** | The bar answering from anywhere, without switching apps |
+
+Scene tabs or arrow keys to navigate, Space to pause, `?scene=2` to open one directly.
+
+> Needs GitHub Pages enabled (*Settings → Pages → Deploy from branch → `main` / root*).
+> Until then: [render it via htmlpreview](https://htmlpreview.github.io/?https://github.com/ascension-ai/lumina-app-prototype/blob/main/design/app-snapshots/index.html),
+> or clone and open `design/app-snapshots/index.html` in a browser.
+
 ---
 
 ## What is your idea?
