@@ -1,0 +1,107 @@
+/*
+ * notch.css — Dock Notch, light. The shipping skin.
+ *
+ * Fused to the bottom edge of the screen: rounded top corners, square bottom ones, and a
+ * shadow thrown upward instead of down. The bottom border is deliberately absent — that
+ * edge is the screen edge, and a hairline there would read as a seam.
+ *
+ * Depth is faked with opaque fills, borders and upward shadows because the Electron
+ * window is transparent with hasShadow:false — backdrop-filter cannot blur the desktop
+ * behind it, and a native shadow would draw a rectangle around the whole window.
+ */
+
+.lp-notch {
+  background: #FFFFFF;
+  color: #1A1A22;
+  border: 1px solid rgba(20, 16, 45, .07);
+  border-bottom: none;
+  box-shadow:
+    0 -1px 3px rgba(24, 20, 50, .05),
+    0 -14px 38px -18px rgba(38, 28, 90, .30);
+  transition: box-shadow .45s cubic-bezier(.32,.72,0,1);
+}
+
+/* The faint violet wash the rest of Lumina uses, kept to a whisper. */
+.lp-notch::after {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 120px;
+  background: radial-gradient(ellipse 70% 100% at 50% 0%, rgba(124, 58, 237, .045), transparent 70%);
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity .35s ease;
+}
+.lp-notch[data-state="awake"]::after,
+.lp-notch[data-state="conversing"]::after { opacity: 1; }
+
+/* Accent hairline along the top edge — the one place violet appears when idle. */
+.lp-notch::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 18%; right: 18%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(124, 58, 237, .28), transparent);
+  pointer-events: none;
+  z-index: 2;
+}
+
+/* On the tab the grip is accent enough — the hairline would crowd 104px. */
+.lp-notch[data-state="sleeping"]::before { opacity: 0; }
+
+.lp-notch[data-state="awake"],
+.lp-notch[data-state="conversing"] {
+  box-shadow:
+    0 -1px 3px rgba(24, 20, 50, .06),
+    0 -22px 54px -24px rgba(38, 28, 90, .38);
+}
+
+/* ---------------- sleeping tab ---------------- */
+.lp-notch[data-state="sleeping"] { cursor: pointer; }
+
+.lp-grip {
+  width: 28px; height: 3px;
+  border-radius: 2px;
+  background: linear-gradient(90deg, rgba(167,139,250,.55), rgba(124,58,237,.85), rgba(167,139,250,.55));
+  animation: lp-grip-breathe 3.2s ease-in-out infinite;
+  transition: width .4s cubic-bezier(.32,.72,0,1), opacity .25s ease;
+}
+@keyframes lp-grip-breathe {
+  0%, 100% { opacity: .5; transform: scaleX(.9); }
+  50%      { opacity: .95; transform: scaleX(1); }
+}
+/* Under the cursor the tab swells (Pill drives the size); the grip answers. */
+.lp-notch[data-peek="true"] .lp-grip {
+  width: 40px;
+  opacity: 1;
+  animation-play-state: paused;
+}
+
+/* ---------------- open surface ---------------- */
+.lp-notch .lp-glyph { color: #7C3AED; opacity: .5; }
+.lp-notch .lp-hint {
+  background: #F4F3F8;
+  color: #6B7280;
+  opacity: 1;
+}
+.lp-notch .lp-input { color: #17171F; }
+.lp-notch .lp-input::placeholder { color: #9CA0AC; opacity: 1; }
+
+.lp-notch .lp-user {
+  background: linear-gradient(135deg, #7C3AED 0%, #6D28D9 100%);
+  color: rgba(255, 255, 255, .96);
+  font-weight: 500;
+  box-shadow: 0 2px 10px -3px rgba(124, 58, 237, .35);
+}
+.lp-notch .lp-ai { color: #45454F; }
+.lp-notch .lp-ai .lp-strong { color: #22222B; }
+.lp-notch .lp-bullet-dot { background: #A78BFA; opacity: .85; }
+.lp-notch .lp-tags span { background: rgba(124, 58, 237, .07); color: rgba(109, 40, 217, .8); }
+.lp-notch .lp-thinking { color: #8B8B99; }
+.lp-notch .lp-thinking .lp-wave i { background: #A78BFA; opacity: 1; }
+
+.lp-notch .lp-foot {
+  border-top: 1px solid rgba(20, 16, 45, .05);
+  color: #8A8A97;
+}
+.lp-notch .lp-foot button:first-child:hover { background: rgba(124, 58, 237, .07); color: #7C3AED; }

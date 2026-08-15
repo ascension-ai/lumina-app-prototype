@@ -1,0 +1,205 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Lumina — Product Snapshot Studio</title>
+  <meta name="description" content="Presentation-ready animated product scenes for Lumina." />
+  <style>
+    :root { --ink:#19151f; --violet:#7040dc; --lilac:#b89aff; --paper:#f4f1f7; --muted:#77717d; --line:rgba(35,27,44,.1); }
+    * { box-sizing:border-box; }
+    html, body { min-height:100%; }
+    body { margin:0; overflow-x:hidden; color:var(--ink); background:#dcd7e4; font-family:Inter,ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; }
+    button { font:inherit; }
+    .studio { min-height:100vh; display:grid; grid-template-rows:auto 1fr auto; background:radial-gradient(circle at 50% 15%,#f8f6fb 0,#e7e2ec 42%,#d4cedc 100%); }
+    .studio-bar { z-index:20; height:68px; display:flex; align-items:center; justify-content:space-between; gap:20px; padding:0 30px; border-bottom:1px solid rgba(35,27,44,.08); background:rgba(247,245,249,.72); backdrop-filter:blur(20px); }
+    .brand { display:flex; align-items:center; gap:10px; font-family:Georgia,serif; font-size:16px; }
+    .mark { width:25px; height:25px; display:grid; place-items:center; border-radius:8px; background:#201925; box-shadow:0 6px 16px rgba(37,24,52,.18); }
+    .mark::after { content:""; width:9px; height:9px; border:1px solid #c7b2ff; border-radius:50%; box-shadow:5px -3px 0 -3px #c7b2ff; }
+    .studio-title { color:#77717d; font-size:10px; font-weight:800; letter-spacing:.14em; text-transform:uppercase; }
+    .studio-actions { display:flex; gap:8px; }
+    .studio-actions button { height:34px; padding:0 13px; border:1px solid rgba(35,27,44,.11); border-radius:9px; background:rgba(255,255,255,.65); color:#4f4855; font-size:10px; font-weight:700; cursor:pointer; transition:.2s ease; }
+    .studio-actions button:hover { background:white; transform:translateY(-1px); }
+    .viewport { display:grid; place-items:center; padding:28px; }
+    .stage { position:relative; width:min(1180px,calc(100vw - 56px)); aspect-ratio:16/10; overflow:hidden; border:1px solid rgba(38,25,51,.14); border-radius:26px; background:#f8f6fa; box-shadow:0 40px 110px rgba(43,29,57,.24),0 2px 0 rgba(255,255,255,.75) inset; isolation:isolate; }
+    .scene { position:absolute; inset:0; display:grid; opacity:0; pointer-events:none; transform:scale(1.025); transition:opacity .55s ease,transform .8s cubic-bezier(.2,.8,.2,1); }
+    .scene.active { opacity:1; pointer-events:auto; transform:none; }
+    .scene-label { position:absolute; z-index:8; top:24px; left:28px; display:flex; align-items:center; gap:9px; color:rgba(255,255,255,.62); font-size:8px; font-weight:800; letter-spacing:.15em; text-transform:uppercase; }
+    .scene-label i { width:6px; height:6px; border-radius:50%; background:#83dfa8; box-shadow:0 0 0 5px rgba(131,223,168,.1); }
+
+    /* Scene 1 — morning brief */
+    .morning { grid-template-columns:29% 1fr; color:white; background:#17131c; }
+    .morning::after { content:""; position:absolute; width:600px; height:600px; top:-380px; right:-100px; border-radius:50%; background:rgba(126,78,230,.19); filter:blur(16px); }
+    .side { position:relative; z-index:2; padding:78px 32px 28px; border-right:1px solid rgba(255,255,255,.08); background:rgba(255,255,255,.018); }
+    .app-brand { display:flex; align-items:center; gap:10px; margin-bottom:48px; font:18px Georgia,serif; }.app-brand .mark { width:27px;height:27px;background:#eee8f7; }.app-brand .mark::after{border-color:#7040dc;box-shadow:5px -3px 0 -3px #7040dc;}
+    .side-label { margin:0 0 12px; color:#766e7e; font-size:8px; font-weight:800; letter-spacing:.15em; }
+    .nav-item { position:relative; display:grid; grid-template-columns:34px 1fr 6px; gap:11px; align-items:center; margin:4px -10px; padding:11px 10px; border-radius:11px; color:#97909e; font-size:11px; }
+    .nav-item.active { color:white; background:linear-gradient(90deg,rgba(121,76,224,.22),rgba(121,76,224,.04)); }
+    .nav-icon { width:32px;height:32px;display:grid;place-items:center;border-radius:9px;background:#2a2331;color:#b999ff;font-size:10px;font-weight:900; }
+    .nav-item strong { display:block;font-size:10px; }.nav-item small { display:block;margin-top:4px;color:#706978;font-size:7px; }.nav-item > i { width:5px;height:5px;border-radius:50%;background:#806f8e; }.nav-item.active > i{background:#a980ff;box-shadow:0 0 0 4px rgba(169,128,255,.1);}
+    .brief { position:relative; z-index:2; padding:75px 54px 40px; background:radial-gradient(circle at 48% 30%,rgba(128,79,224,.11),transparent 42%); }
+    .brief-head { display:flex;align-items:end;justify-content:space-between;margin-bottom:29px; }.brief-head span{color:#8b8292;font-size:8px;font-weight:800;letter-spacing:.15em;}.brief-head h1{margin:8px 0 0;font:36px/1.1 Georgia,serif;font-weight:400;}.brief-head h1 em{color:#b493ff;font-weight:400;}.brief-head time{padding:8px 11px;border:1px solid rgba(255,255,255,.08);border-radius:8px;color:#817988;font-size:8px;}
+    .pulse-summary { display:grid;grid-template-columns:1.2fr .8fr;gap:14px;margin-bottom:14px; }
+    .glass { border:1px solid rgba(255,255,255,.09);border-radius:17px;background:rgba(255,255,255,.045);box-shadow:0 20px 50px rgba(0,0,0,.12); }
+    .attention { padding:23px; }.card-title{display:flex;align-items:center;gap:11px;padding-bottom:18px;border-bottom:1px solid rgba(255,255,255,.07);}.card-title .nav-icon{background:#e9e0fb;color:#7040dc;}.card-title strong{display:block;font-size:11px;}.card-title small{display:block;margin-top:4px;color:#766e7d;font-size:8px;}.card-title time{margin-left:auto;color:#696170;font-size:7px;}
+    .task { display:grid;grid-template-columns:39px 1fr auto;gap:11px;align-items:start;padding:18px 0;border-bottom:1px solid rgba(255,255,255,.06);opacity:0;transform:translateY(9px);}.scene.active .task{animation:rise .55s forwards;}.scene.active .task:nth-child(3){animation-delay:.18s;}.scene.active .task:nth-child(4){animation-delay:.34s;}.priority{padding:5px 7px;border-radius:6px;background:rgba(240,119,119,.12);color:#ec9898;font-size:7px;font-weight:800;text-align:center;}.priority.med{background:rgba(228,177,91,.1);color:#dab068;}.task strong{display:block;font-size:9px;}.task p{margin:5px 0 0;color:#8a828f;font-size:8px;line-height:1.5;}.task > time{color:#756d7b;font-size:7px;}
+    .signal { padding:23px;display:flex;flex-direction:column;}.signal-top{display:flex;align-items:center;justify-content:space-between;color:#817888;font-size:8px;}.signal-top b{color:#8fd7ae;font-size:7px;}.metric{margin:auto 0 20px;}.metric strong{display:block;font:52px Georgia,serif;letter-spacing:-.06em;}.metric span{color:#8a828f;font-size:9px;}.bars{height:75px;display:flex;align-items:end;gap:7px;}.bars i{flex:1;border-radius:5px 5px 2px 2px;background:linear-gradient(#9c77ed,#544070);transform:scaleY(.05);transform-origin:bottom;}.scene.active .bars i{animation:grow .7s cubic-bezier(.2,.8,.2,1) forwards;}.bars i:nth-child(2){height:45%;animation-delay:.12s}.bars i:nth-child(3){height:70%;animation-delay:.2s}.bars i:nth-child(4){height:56%;animation-delay:.28s}.bars i:nth-child(5){height:88%;animation-delay:.36s}.bars i:nth-child(1){height:32%}
+    .lower-row{display:grid;grid-template-columns:1fr 1fr;gap:14px;}.mini-card{padding:18px 20px;display:flex;align-items:center;gap:12px;}.mini-card .nav-icon.teal{background:#dff1ed;color:#318879}.mini-card strong{display:block;font-size:9px}.mini-card small{display:block;margin-top:5px;color:#807887;font-size:7px}.mini-card > time{margin-left:auto;color:#706878;font-size:7px}
+
+    /* Scene 2 — compiler */
+    .compiler { color:white; background:#17141d; place-items:center; }
+    .compiler::before { content:"";position:absolute;width:720px;height:480px;border-radius:50%;background:radial-gradient(circle,rgba(118,66,222,.22),transparent 66%);filter:blur(10px); }
+    .compiler-shell { position:relative;z-index:2;width:82%;display:grid;grid-template-columns:1fr 1fr;overflow:hidden;border:1px solid rgba(255,255,255,.11);border-radius:21px;background:#211d29;box-shadow:0 35px 100px rgba(0,0,0,.32); }
+    .intent { min-height:455px;display:flex;flex-direction:column;padding:38px;border-right:1px solid rgba(255,255,255,.09);background:radial-gradient(circle at 10% 5%,rgba(122,78,221,.18),transparent 40%);}.caps{color:#918898;font-size:8px;font-weight:800;letter-spacing:.14em;}.intent blockquote{margin:35px 0 25px;font:22px/1.55 Georgia,serif;color:#f1edf5;}.chips{display:flex;gap:6px;flex-wrap:wrap}.chips span{padding:7px 9px;border:1px solid rgba(255,255,255,.08);border-radius:7px;background:rgba(255,255,255,.035);color:#a9a1af;font-size:7px}.compile-pill{display:flex;align-items:center;gap:10px;margin-top:auto;padding:12px;border:1px solid rgba(137,92,235,.23);border-radius:10px;background:rgba(109,60,232,.11)}.compile-pill>span{width:28px;height:28px;display:grid;place-items:center;border-radius:7px;background:#6d3ce8}.compile-pill strong{display:block;font-size:8px}.compile-pill small{display:block;margin-top:4px;color:#8e8596;font-size:7px}.compile-pill i{margin-left:auto;width:6px;height:6px;border-radius:50%;background:#a17af7;animation:pulse 1.6s infinite}
+    .code { padding:30px;background:#19161e; }.code-head{display:flex;justify-content:space-between;padding-bottom:17px;border-bottom:1px solid rgba(255,255,255,.07);color:#9e96a5;font:8px ui-monospace,SFMono-Regular,Menlo,monospace}.code-head b{padding:5px 7px;border:1px solid rgba(113,198,151,.2);border-radius:5px;color:#75c89b;font-size:6px}.code pre{margin:25px 0 0;color:#bcb5c4;font:9px/1.75 ui-monospace,SFMono-Regular,Menlo,monospace;white-space:pre-wrap}.key{color:#b095f3}.str{color:#8dc8aa}.dim{color:#625c68}.white{color:white;font-weight:700}.code-line{display:inline-block;opacity:0;transform:translateX(-6px)}.scene.active .code-line{animation:codeIn .35s forwards}.scene.active .code-line:nth-child(2){animation-delay:.1s}.scene.active .code-line:nth-child(3){animation-delay:.2s}.scene.active .code-line:nth-child(4){animation-delay:.3s}.scene.active .code-line:nth-child(5){animation-delay:.4s}.scene.active .code-line:nth-child(6){animation-delay:.5s}
+
+    /* Scene 3 — commitments */
+    .commitments { grid-template-columns:37% 1fr; background:#f4f1f6; }
+    .commit-copy { position:relative;padding:90px 48px;background:#211b28;color:white;overflow:hidden;}.commit-copy::after{content:"";position:absolute;width:360px;height:360px;left:-130px;bottom:-170px;border-radius:50%;background:rgba(128,78,230,.25);filter:blur(5px)}.commit-copy .caps{color:#9d91aa}.commit-copy h1{margin:23px 0 21px;font:42px/1.06 Georgia,serif;font-weight:400;letter-spacing:-.035em}.commit-copy h1 em{color:#b696ff}.commit-copy p{max-width:310px;margin:0;color:#aaa2ae;font-size:12px;line-height:1.72}.stat-row{position:absolute;z-index:2;right:48px;bottom:48px;left:48px;display:flex;gap:28px;padding-top:22px;border-top:1px solid rgba(255,255,255,.1)}.stat-row strong{display:block;font:25px Georgia,serif}.stat-row small{display:block;margin-top:5px;color:#827889;font-size:7px}
+    .commit-ui{padding:58px 46px 38px;}.ui-top{display:flex;align-items:end;justify-content:space-between;margin-bottom:24px}.ui-top span{color:#8e8792;font-size:8px;font-weight:800;letter-spacing:.13em}.ui-top h2{margin:7px 0 0;font:28px Georgia,serif;font-weight:400}.ui-top button{padding:9px 12px;border:1px solid #ddd7e3;border-radius:8px;background:white;color:#5f5865;font-size:8px}.filterbar{display:flex;gap:6px;margin-bottom:15px}.filterbar span{padding:7px 10px;border:1px solid #ded8e4;border-radius:20px;background:#faf9fb;color:#7f7884;font-size:7px}.filterbar span.active{border-color:#c9b4fa;background:#eee7fd;color:#7040dc}.promise{display:grid;grid-template-columns:38px 1fr auto;gap:12px;align-items:center;margin:9px 0;padding:16px;border:1px solid #e1dce6;border-radius:13px;background:#fbfafc;box-shadow:0 8px 24px rgba(45,29,63,.04);opacity:0;transform:translateX(18px)}.scene.active .promise{animation:slideIn .55s forwards}.scene.active .promise:nth-child(2){animation-delay:.12s}.scene.active .promise:nth-child(3){animation-delay:.24s}.scene.active .promise:nth-child(4){animation-delay:.36s}.promise .avatar{width:38px;height:38px;display:grid;place-items:center;border-radius:10px;background:#e9e0fb;color:#7040dc;font-size:9px;font-weight:800}.promise:nth-child(3) .avatar{background:#dff1ed;color:#318879}.promise:nth-child(4) .avatar{background:#ece9e4;color:#796f60}.promise strong{display:block;font-size:10px}.promise p{margin:5px 0 0;color:#817a85;font-size:8px}.promise time{padding:6px 8px;border-radius:6px;background:#f0ecf5;color:#7e7685;font-size:7px}.promise time.today{background:#f8e8e8;color:#b15d62}.done-line{display:flex;align-items:center;gap:10px;margin-top:17px;padding:13px 16px;border:1px solid #d8e8de;border-radius:11px;background:#f1faf4;color:#57906d;font-size:8px}.done-line b{width:22px;height:22px;display:grid;place-items:center;border-radius:50%;background:#d9f1e1}
+
+    /* Scene 4 — dock */
+    .dock-scene { color:white; background:linear-gradient(145deg,#d8d2e6 0,#a89fc4 50%,#756b98 100%); }
+    .desktop { position:absolute;top:70px;right:6%;bottom:0;left:6%;overflow:hidden;border:1px solid rgba(255,255,255,.52);border-bottom:0;border-radius:18px 18px 0 0;background:rgba(250,249,252,.91);box-shadow:0 30px 70px rgba(36,27,52,.22)}.desktop-top{height:38px;display:flex;align-items:center;gap:6px;padding:0 14px;border-bottom:1px solid rgba(43,35,54,.08);background:rgba(255,255,255,.68)}.desktop-top i{width:7px;height:7px;border-radius:50%;background:#d1ccd6}.desktop-top b{margin:auto;padding-right:40px;color:#9f99a3;font-size:8px}.desktop-body{height:100%;display:grid;grid-template-columns:22% 1fr}.desktop-nav{padding:33px 22px;border-right:1px solid #e5e1e8;background:#f1eef4}.desktop-nav i{display:block;height:8px;margin-bottom:20px;border-radius:5px;background:#dcd7e1}.desktop-nav i:nth-child(2){background:#cbbde8}.desktop-page{padding:52px 54px}.desktop-page span{display:block;width:86%;height:10px;margin-bottom:25px;border-radius:6px;background:#e3dfe6}.desktop-page span:first-child{width:42%;height:20px;background:#d2ccd8}.desktop-page span:nth-child(3){width:71%}.desktop-page span:nth-child(5){width:55%}
+    .ask-hint{position:absolute;z-index:4;top:27px;right:28px;display:flex;align-items:center;gap:8px;padding:9px 11px;border:1px solid rgba(255,255,255,.18);border-radius:9px;background:rgba(24,18,33,.18);color:rgba(255,255,255,.78);font-size:8px;backdrop-filter:blur(10px)}.ask-hint i{width:5px;height:5px;border-radius:50%;background:#86e3ad}
+    .dock { position:absolute;z-index:6;right:12%;bottom:0;left:12%;overflow:hidden;border-radius:22px 22px 0 0;background:#111014;box-shadow:0 -24px 65px -20px rgba(0,0,0,.67),inset 0 1px rgba(255,255,255,.09);transform:translateY(72%);}.scene.active .dock{animation:dockUp .7s .35s cubic-bezier(.2,.8,.2,1) forwards}.dock-answer{padding:25px 28px 22px;border-bottom:1px solid rgba(255,255,255,.07)}.answer-top{display:flex;justify-content:space-between;color:#716b78;font-size:7px;letter-spacing:.1em}.answer-top b{padding:4px 6px;border-radius:5px;background:rgba(255,255,255,.07);color:#9e97a6;font-size:6px}.dock-answer h3{margin:18px 0 10px;font:18px Georgia,serif;font-weight:400}.dock-answer p{margin:0;color:#aaa6b0;font-size:10px;line-height:1.65}.dock-answer ul{margin:16px 0 0;padding:0;list-style:none}.dock-answer li{position:relative;margin:9px 0;padding-left:14px;color:#c5c1cb;font-size:9px;opacity:0;transform:translateY(6px)}.dock-answer li::before{content:"";position:absolute;top:4px;left:0;width:5px;height:5px;border-radius:50%;background:#ab89ff}.scene.active .dock-answer li{animation:rise .38s 1s forwards}.scene.active .dock-answer li:nth-child(2){animation-delay:1.15s}.source-pills{display:flex;gap:5px;margin-top:16px}.source-pills span{padding:5px 8px;border-radius:20px;background:rgba(255,255,255,.08);color:#bcb6c8;font-size:7px}.dock-query{height:62px;display:flex;align-items:center;gap:12px;padding:0 28px}.dock-glyph{width:23px;height:23px;display:grid;place-items:center;border-radius:7px;background:rgba(167,139,250,.16);color:#c9b8ff;font-size:10px}.dock-query strong{flex:1;color:#edeaf2;font-size:11px;font-weight:500}.dock-query kbd{padding:5px 7px;border-radius:6px;background:rgba(255,255,255,.08);color:#8e8794;font:7px Arial,sans-serif}
+
+    /* Light product language — aligned with the current Lumina app */
+    .morning { color:#211b27; background:#fdfcfd; }
+    .morning::after { background:rgba(126,78,230,.08); }
+    .morning .scene-label,.compiler .scene-label,.commitments .scene-label,.dock-scene .scene-label { color:#817a86; }
+    .morning .side,.commitments .side { border-right:1px solid #e9e5ed; background:#faf9fb; color:#211b27; }
+    .morning .app-brand,.commitments .app-brand { color:#211b27; }
+    .morning .app-brand .mark,.commitments .app-brand .mark { background:#211b27; }
+    .morning .app-brand .mark::after,.commitments .app-brand .mark::after { border-color:#c7b2ff; box-shadow:5px -3px 0 -3px #c7b2ff; }
+    .morning .side-label,.commitments .side-label { color:#aaa4ae; }
+    .morning .nav-item,.commitments .nav-item { color:#7e7883; }
+    .morning .nav-item.active,.commitments .nav-item.active { color:#2b2431; background:linear-gradient(90deg,#eee7fb,rgba(244,240,249,.2)); }
+    .morning .nav-icon,.commitments .nav-icon { background:#eee7fb; color:#7040dc; }
+    .morning .nav-item small,.commitments .nav-item small { color:#aaa4ae; }
+    .morning .nav-item > i,.commitments .nav-item > i { background:#cbc5d0; }
+    .morning .nav-item.active > i,.commitments .nav-item.active > i { background:#7950db; box-shadow:0 0 0 4px rgba(112,64,220,.08); }
+    .brief { background:radial-gradient(circle at 52% 14%,rgba(128,79,224,.065),transparent 42%),#fdfcfd; }
+    .brief-head span { color:#a19ca7; }.brief-head h1 { color:#241e29; }.brief-head h1 em { color:#7040dc; }.brief-head time { border-color:#e5e1e8; background:#fff; color:#8d8791; }
+    .glass { border-color:#e8e4ec; background:#fff; box-shadow:0 10px 32px rgba(37,25,55,.055); }
+    .card-title { border-color:#efecf1; }.card-title small,.task p { color:#96909b; }.card-title time,.task>time { color:#aaa4ae; }
+    .task { border-color:#f0edf2; }.task strong,.mini-card strong { color:#2a2430; }
+    .signal-top { color:#938d97; }.signal-top b { color:#45976a; }.metric strong { color:#251f2b; }.metric span { color:#96909b; }.bars i { background:linear-gradient(#9d77ed,#d6c8f5); }
+    .mini-card small { color:#96909b; }.mini-card>time { color:#aaa4ae; }
+
+    .compiler { color:#26202c; background:radial-gradient(circle at 50% 45%,#eee7fb,transparent 48%),#f7f4f9; }
+    .compiler::before { background:radial-gradient(circle,rgba(118,66,222,.08),transparent 66%); }
+    .compiler-shell { border-color:#ddd7e4; background:#fff; box-shadow:0 30px 85px rgba(49,30,69,.14); }
+    .intent { border-color:#e8e3ec; background:radial-gradient(circle at 10% 5%,rgba(122,78,221,.1),transparent 42%),#fff; }
+    .intent .caps { color:#968f9c; }.intent blockquote { color:#29222f; }.chips span { border-color:#e5e0e9; background:#faf8fb; color:#77717d; }
+    .compile-pill { border-color:#d9cdf3; background:#f3edfd; }.compile-pill strong { color:#382a49; }.compile-pill small { color:#887e91; }
+    .code { background:#faf9fb; }.code-head { border-color:#e8e4eb; color:#817a86; }.code-head b { border-color:#cfe7da; background:#f3faf6; color:#3d9163; }
+    .code pre { color:#5f5865; }.code .dim { color:#aaa3ad; }.code .white { color:#28222d; }
+
+    .commitments { grid-template-columns:27% 1fr; color:#241e29; background:#fdfcfd; }
+    .commitments .side { padding-top:78px; }
+    .commitments .side-footer { position:absolute;right:22px;bottom:24px;left:22px;display:flex;align-items:center;gap:10px;padding:12px;border:1px solid #ebe7ee;border-radius:10px;background:#fff; }
+    .commitments .side-footer span { width:28px;height:28px;display:grid;place-items:center;border-radius:8px;background:#eee7fb;color:#7040dc;font-size:9px; }.commitments .side-footer strong{display:block;font-size:8px}.commitments .side-footer small{display:block;margin-top:3px;color:#a29ca7;font-size:7px}
+    .commit-workspace { position:relative;padding:71px 43px 34px;background:radial-gradient(circle at 45% 0,rgba(117,70,220,.055),transparent 36%),#fdfcfd; }
+    .commit-toolbar { display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:23px; }.commit-toolbar>div>span { color:#a29ca7;font-size:8px;font-weight:800;letter-spacing:.14em; }.commit-toolbar h1 { margin:7px 0 0;font-size:26px;letter-spacing:-.04em; }.commit-actions{display:flex;gap:7px}.commit-actions button{height:32px;padding:0 11px;border:1px solid #e3dee7;border-radius:8px;background:#fff;color:#706977;font-size:7px}.commit-actions button:last-child{border-color:#7140dc;background:#7040dc;color:#fff;box-shadow:0 6px 15px rgba(112,64,220,.17)}
+    .commit-metrics { display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px; }.commit-metric { padding:14px 16px;border:1px solid #e9e5ed;border-radius:11px;background:#fff; }.commit-metric span{display:block;color:#97919c;font-size:7px}.commit-metric strong{display:block;margin-top:7px;font:22px Georgia,serif}.commit-metric small{color:#4c9a6c;font-size:7px}.commit-metric.attn strong{color:#7040dc}
+    .commit-panel { overflow:hidden;border:1px solid #e6e1e9;border-radius:13px;background:#fff;box-shadow:0 10px 35px rgba(43,27,59,.05); }.commit-panel-head{display:flex;align-items:center;gap:7px;padding:13px 15px;border-bottom:1px solid #efecf1}.commit-panel-head strong{font-size:9px}.commit-panel-head>span{margin-left:auto;color:#aaa4ae;font-size:7px}.filter-pill{padding:5px 8px;border-radius:20px;background:#eee7fb;color:#7040dc;font-size:7px;font-weight:700}
+    .commit-row { display:grid;grid-template-columns:36px 1fr 82px 70px 18px;gap:11px;align-items:center;padding:14px 16px;border-bottom:1px solid #f0edf2;opacity:0;transform:translateY(7px); }.scene.active .commit-row{animation:rise .45s forwards}.scene.active .commit-row:nth-child(3){animation-delay:.12s}.scene.active .commit-row:nth-child(4){animation-delay:.24s}.scene.active .commit-row:nth-child(5){animation-delay:.36s}.commit-row:last-child{border:0}.commit-avatar{width:33px;height:33px;display:grid;place-items:center;border-radius:9px;background:#e9e0fb;color:#7040dc;font-size:8px;font-weight:800}.commit-row:nth-child(3) .commit-avatar{background:#dff1ed;color:#318879}.commit-row:nth-child(4) .commit-avatar{background:#ece9e4;color:#796f60}.commit-row strong{display:block;font-size:9px}.commit-row p{margin:4px 0 0;color:#99939d;font-size:7px}.source-chip{justify-self:start;padding:5px 7px;border-radius:6px;background:#f4f1f6;color:#7d7682;font-size:7px}.due{font-size:7px;color:#8d8792}.due.today{color:#b95757;font-weight:700}.commit-row>i{color:#b2acb5;font-style:normal}.quiet-note{display:flex;align-items:center;gap:9px;margin-top:11px;padding:11px 14px;border:1px solid #dbe9e0;border-radius:10px;background:#f4faf6;color:#5f806b;font-size:7px}.quiet-note b{width:20px;height:20px;display:grid;place-items:center;border-radius:50%;background:#dff1e5;color:#419466}
+
+    .dock-scene { background:linear-gradient(145deg,#f1edf6 0,#dcd5e8 50%,#bdb3d1 100%); }
+
+    .controls { height:82px;display:flex;align-items:center;justify-content:center;gap:8px;padding:0 24px; }
+    .scene-tab { position:relative;min-width:160px;height:43px;display:grid;grid-template-columns:25px 1fr;gap:9px;align-items:center;overflow:hidden;padding:0 12px;border:1px solid rgba(35,27,44,.09);border-radius:11px;background:rgba(255,255,255,.52);color:#746e79;text-align:left;cursor:pointer;transition:.2s ease; }.scene-tab:hover{background:rgba(255,255,255,.8)}.scene-tab.active{border-color:rgba(112,64,220,.23);background:white;color:#2b2530;box-shadow:0 8px 25px rgba(52,34,70,.08)}.scene-tab > b{width:24px;height:24px;display:grid;place-items:center;border-radius:7px;background:#ece7f2;color:#7040dc;font:10px Georgia,serif}.scene-tab strong{display:block;font-size:9px}.scene-tab small{display:block;margin-top:2px;color:#98929c;font-size:7px}.scene-tab i{position:absolute;right:0;bottom:0;left:0;height:2px;background:#7040dc;transform:scaleX(0);transform-origin:left}.scene-tab.active i.playing{animation:progress 7s linear forwards}
+    .capture-mode .studio-bar,.capture-mode .controls{display:none}.capture-mode .studio{display:grid;place-items:center;min-height:100vh}.capture-mode .viewport{padding:0}.capture-mode .stage{width:100vw;border:0;border-radius:0;box-shadow:none}
+    @keyframes rise{to{opacity:1;transform:none}}@keyframes slideIn{to{opacity:1;transform:none}}@keyframes grow{to{transform:scaleY(1)}}@keyframes codeIn{to{opacity:1;transform:none}}@keyframes pulse{50%{opacity:.45;transform:scale(.8)}}@keyframes dockUp{to{transform:translateY(0)}}@keyframes progress{to{transform:scaleX(1)}}
+    @media(max-width:760px){.studio-title{display:none}.viewport{padding:12px}.stage{width:calc(100vw - 24px);border-radius:16px}.controls{justify-content:flex-start;overflow-x:auto}.scene-tab{min-width:145px}.brief{padding:62px 28px 30px}.side{padding:62px 18px 20px}.pulse-summary{grid-template-columns:1fr}.signal{display:none}.compiler-shell{width:92%}.intent{padding:25px}.code{padding:24px}.commit-copy{padding:70px 28px}.commit-ui{padding:50px 24px}.dock{right:5%;left:5%}}
+    @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important}}
+  </style>
+</head>
+<body>
+  <main class="studio">
+    <header class="studio-bar">
+      <div class="brand"><span class="mark"></span> Lumina</div>
+      <div class="studio-title">Product snapshot studio · presentation mode</div>
+      <div class="studio-actions"><button id="pause">Pause</button><button id="capture">Clean view</button><button id="fullscreen">Fullscreen</button></div>
+    </header>
+    <section class="viewport">
+      <div class="stage" id="stage">
+        <article class="scene morning active" data-scene="0">
+          <div class="scene-label"><i></i> Live intelligence feed</div>
+          <aside class="side">
+            <div class="app-brand"><span class="mark"></span> Lumina</div><p class="side-label">WORKFLOWS</p>
+            <div class="nav-item active"><span class="nav-icon">✦</span><span><strong>Daily brief</strong><small>Today, 8:30 AM</small></span><i></i></div>
+            <div class="nav-item"><span class="nav-icon">#</span><span><strong>Slack follow-ups</strong><small>Tonight, 11:00 PM</small></span><i></i></div>
+            <div class="nav-item"><span class="nav-icon">N</span><span><strong>Notion changes</strong><small>Tomorrow, 8:00 AM</small></span><i></i></div>
+          </aside>
+          <section class="brief">
+            <div class="brief-head"><div><span>GOOD MORNING, ALEX</span><h1>Here’s what <em>moved.</em></h1></div><time>Friday · 8:42 AM</time></div>
+            <div class="pulse-summary"><div class="glass attention"><div class="card-title"><span class="nav-icon">#</span><div><strong>Slack follow-ups</strong><small>3 items need your attention</small></div><time>2m ago</time></div><div class="task"><b class="priority">High</b><div><strong>Review the authentication PR</strong><p>Sarah is waiting on your approval before today’s release.</p></div><time>Today</time></div><div class="task"><b class="priority med">Med</b><div><strong>Send revised launch timeline</strong><p>You promised Mike an update after the planning call.</p></div><time>Tomorrow</time></div></div><div class="glass signal"><div class="signal-top"><span>WEEKLY SIGNAL</span><b>↑ 18%</b></div><div class="metric"><strong>14</strong><span>responsibilities quietly handled</span></div><div class="bars"><i></i><i></i><i></i><i></i><i></i></div></div></div>
+            <div class="lower-row"><div class="glass mini-card"><span class="nav-icon teal">N</span><div><strong>Engineering docs changed</strong><small>2 meaningful updates · 4 formatting edits ignored</small></div><time>8m</time></div><div class="glass mini-card"><span class="nav-icon">◉</span><div><strong>Customer brief is ready</strong><small>Acme, Northstar and Relay summarized</small></div><time>12m</time></div></div>
+          </section>
+        </article>
+
+        <article class="scene compiler" data-scene="1">
+          <div class="scene-label"><i></i> Intent → inspectable workflow</div>
+          <div class="compiler-shell"><section class="intent"><span class="caps">YOUR INTENT</span><blockquote>“Every night, find Slack messages where I promised to get back to someone. If it’s unresolved, add it to Todoist with the right due date.”</blockquote><div class="chips"><span>◷ Every night</span><span># Slack</span><span>✓ Todoist</span></div><div class="compile-pill"><span>✦</span><div><strong>Compiling your workflow</strong><small>Building search strategy, guardrails and output schema</small></div><i></i></div></section><section class="code"><div class="code-head"><span>SKILL.md</span><b>INSPECTABLE</b></div><pre><span class="code-line"><span class="dim">---</span></span>
+<span class="code-line"><span class="key">name:</span> slack-follow-up-tracker</span>
+<span class="code-line"><span class="key">cron:</span> <span class="str">&quot;0 23 * * *&quot;</span></span>
+<span class="code-line"><span class="key">sources:</span> [slack:mentions]</span>
+<span class="code-line"><span class="key">outputs:</span> [todoist]</span>
+<span class="code-line"><span class="dim">---</span>
+
+<span class="white"># Follow-up tracker</span>
+
+Search recent mentions and messages sent by
+the user. Read full threads before deciding
+action is needed.
+
+Skip resolved and previously processed items.
+Infer due dates from context.</span></pre></section></div>
+        </article>
+
+        <article class="scene commitments" data-scene="2">
+          <div class="scene-label"><i></i> Lumina workflow workspace</div>
+          <aside class="side">
+            <div class="app-brand"><span class="mark"></span> Lumina</div><p class="side-label">WORKFLOWS</p>
+            <div class="nav-item"><span class="nav-icon">✦</span><span><strong>Daily brief</strong><small>Today, 8:30 AM</small></span><i></i></div>
+            <div class="nav-item active"><span class="nav-icon">#</span><span><strong>Slack follow-ups</strong><small>Last run, 2m ago</small></span><i></i></div>
+            <div class="nav-item"><span class="nav-icon">N</span><span><strong>Notion changes</strong><small>Tomorrow, 8:00 AM</small></span><i></i></div>
+            <div class="side-footer"><span>⌘</span><div><strong>Workflow studio</strong><small>Edit intent and guardrails</small></div></div>
+          </aside>
+          <section class="commit-workspace">
+            <div class="commit-toolbar"><div><span>SLACK FOLLOW-UP TRACKER</span><h1>Commitments that need you</h1></div><div class="commit-actions"><button>Last run · 2m ago</button><button>Edit workflow</button></div></div>
+            <div class="commit-metrics"><div class="commit-metric"><span>MESSAGES REVIEWED</span><strong>148</strong><small>Across 12 threads</small></div><div class="commit-metric attn"><span>NEEDS ACTION</span><strong>3</strong><small>Prioritized by context</small></div><div class="commit-metric"><span>QUIETLY RESOLVED</span><strong>8</strong><small>No interruption needed</small></div></div>
+            <div class="commit-panel"><div class="commit-panel-head"><strong>Open commitments</strong><b class="filter-pill">Needs action · 3</b><span>Due date inferred from context</span></div><div class="commit-row"><span class="commit-avatar">SC</span><div><strong>Review Sarah’s authentication PR</strong><p>“I’ll take a look before we cut the release.”</p></div><span class="source-chip"># engineering</span><span class="due today">Today</span><i>›</i></div><div class="commit-row"><span class="commit-avatar">MR</span><div><strong>Send Mike the revised launch timeline</strong><p>Promised after Thursday’s planning call.</p></div><span class="source-chip"># launch</span><span class="due">Tomorrow</span><i>›</i></div><div class="commit-row"><span class="commit-avatar">NP</span><div><strong>Share pricing notes with Nina</strong><p>Waiting on the finance conversation.</p></div><span class="source-chip"># pricing</span><span class="due">Monday</span><i>›</i></div></div>
+            <div class="quiet-note"><b>✓</b> Lumina also checked 8 resolved threads and quietly dismissed them.</div>
+          </section>
+        </article>
+
+        <article class="scene dock-scene" data-scene="3">
+          <div class="scene-label"><i></i> Available from anywhere</div><div class="ask-hint"><i></i> Option + Space</div>
+          <div class="desktop"><div class="desktop-top"><i></i><i></i><i></i><b>Weekly launch plan</b></div><div class="desktop-body"><div class="desktop-nav"><i></i><i></i><i></i><i></i><i></i></div><div class="desktop-page"><span></span><span></span><span></span><span></span><span></span></div></div></div>
+          <div class="dock"><div class="dock-answer"><div class="answer-top"><span>LUMINA · WORKSPACE ANSWER</span><b>3 SOURCES</b></div><h3>Acme’s launch moved forward in three ways.</h3><p>The security review cleared, the rollout date moved to Friday, and customer success now owns the enablement checklist.</p><ul><li>Authentication blocker closed by Sarah on Wednesday</li><li>Launch window confirmed for Friday at 10:00 AM</li></ul><div class="source-pills"><span># launch-war-room</span><span>N Acme rollout</span><span>◉ Monday sync</span></div></div><div class="dock-query"><span class="dock-glyph">✦</span><strong>What changed with the Acme launch this week?</strong><kbd>esc</kbd></div></div>
+        </article>
+      </div>
+    </section>
+    <nav class="controls" aria-label="Snapshot scenes">
+      <button class="scene-tab active" data-go="0"><b>01</b><span><strong>Morning brief</strong><small>What deserves attention</small></span><i class="playing"></i></button>
+      <button class="scene-tab" data-go="1"><b>02</b><span><strong>Workflow compiler</strong><small>Intent becomes a skill</small></span><i></i></button>
+      <button class="scene-tab" data-go="2"><b>03</b><span><strong>Commitment tracker</strong><small>Promises become action</small></span><i></i></button>
+      <button class="scene-tab" data-go="3"><b>04</b><span><strong>Ambient answers</strong><small>Context from anywhere</small></span><i></i></button>
+    </nav>
+  </main>
+  <script>
+    const scenes=[...document.querySelectorAll('.scene')],tabs=[...document.querySelectorAll('.scene-tab')];
+    const params=new URLSearchParams(location.search); let current=Math.max(0,Math.min(3,Number(params.get('scene')||1)-1)); let paused=params.has('scene'); let timer;
+    function show(index,manual=false){current=(index+scenes.length)%scenes.length;scenes.forEach((s,i)=>s.classList.toggle('active',i===current));tabs.forEach((t,i)=>{t.classList.toggle('active',i===current);const p=t.querySelector('i');p.classList.remove('playing');if(i===current&&!paused)requestAnimationFrame(()=>p.classList.add('playing'));});if(manual){history.replaceState(null,'',`?scene=${current+1}`)}clearTimeout(timer);if(!paused)timer=setTimeout(()=>show(current+1),7000)}
+    tabs.forEach((tab,i)=>tab.addEventListener('click',()=>show(i,true)));
+    document.getElementById('pause').addEventListener('click',e=>{paused=!paused;e.currentTarget.textContent=paused?'Play':'Pause';show(current)});
+    document.getElementById('capture').addEventListener('click',()=>document.body.classList.toggle('capture-mode'));
+    document.getElementById('fullscreen').addEventListener('click',()=>document.fullscreenElement?document.exitFullscreen():document.documentElement.requestFullscreen());
+    addEventListener('keydown',e=>{if(e.key==='ArrowRight')show(current+1,true);if(e.key==='ArrowLeft')show(current-1,true);if(e.key===' '){e.preventDefault();document.getElementById('pause').click()}if(e.key==='Escape')document.body.classList.remove('capture-mode')});
+    show(current);
+  </script>
+</body>
+</html>

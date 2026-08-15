@@ -1,0 +1,147 @@
+/*
+ * pill-base.css — the structural skeleton every floating-bar skin shares.
+ * Colour lives in the skin files (notch.css ships; pills.css is gallery-only).
+ *
+ * All box metrics read CSS variables supplied by the skin's `vars`, so the numbers
+ * FloatingBar uses to size the OS window are the same numbers that lay the bar out.
+ * Everything is scoped under .lp and cannot leak into the expanded app.
+ */
+
+.lp {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  position: relative;
+  box-sizing: border-box;
+  will-change: width;
+}
+.lp * { box-sizing: border-box; }
+
+.lp-idle {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  overflow: hidden;
+}
+.lp-body { overflow: hidden; }
+
+/* ---------------- input row ---------------- */
+.lp-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  height: var(--lp-row-h, 54px);
+  padding: 0 16px;
+}
+.lp-glyph { width: 16px; height: 16px; flex: 0 0 auto; opacity: .45; }
+.lp-input {
+  flex: 1 1 auto;
+  min-width: 0;
+  background: transparent;
+  border: none;
+  outline: none;
+  font: inherit;
+  font-size: 13.5px;
+  color: inherit;
+  padding: 0;
+}
+.lp-input::placeholder { color: currentColor; opacity: .38; }
+/* index.css puts a ring on every focused input; the bar must never show one. */
+.lp-input:focus,
+.lp-input:focus-visible {
+  outline: none !important;
+  box-shadow: none !important;
+  border: none !important;
+  --tw-ring-shadow: none !important;
+  --tw-ring-color: transparent !important;
+}
+.lp-hint {
+  flex: 0 0 auto;
+  font-size: 10.5px;
+  letter-spacing: .04em;
+  padding: 3px 7px;
+  border-radius: 6px;
+  opacity: .6;
+  white-space: nowrap;
+}
+.lp-send {
+  flex: 0 0 auto;
+  width: 26px; height: 26px;
+  display: flex; align-items: center; justify-content: center;
+  border: none; border-radius: 8px; cursor: pointer;
+  background: #7C3AED; color: #fff;
+  box-shadow: 0 2px 8px -3px rgba(124,58,237,.5);
+}
+.lp-send svg { width: 14px; height: 14px; }
+
+/* ---------------- waveform (thinking, and the capsule's idle) ---------------- */
+.lp-wave { display: inline-flex; align-items: center; gap: 3px; height: 16px; }
+.lp-wave i {
+  display: block; width: 2.5px; height: 6px; border-radius: 2px;
+  background: currentColor; opacity: .8;
+  animation: lp-bounce 1s ease-in-out infinite;
+}
+.lp-wave i:nth-child(2) { animation-delay: .12s }
+.lp-wave i:nth-child(3) { animation-delay: .24s }
+.lp-wave i:nth-child(4) { animation-delay: .36s }
+@keyframes lp-bounce { 0%,100% { transform: scaleY(.55) } 50% { transform: scaleY(2.4) } }
+
+.lp-wave-idle i { animation: lp-breathe 2.6s ease-in-out infinite; opacity: .5; }
+.lp-wave-idle i:nth-child(2) { animation-delay: .2s }
+.lp-wave-idle i:nth-child(3) { animation-delay: .4s }
+.lp-wave-idle i:nth-child(4) { animation-delay: .6s }
+@keyframes lp-breathe { 0%,100% { transform: scaleY(.7); opacity: .38 } 50% { transform: scaleY(1.9); opacity: .85 } }
+
+/* ---------------- conversation ---------------- */
+.lp-scroll {
+  max-height: var(--lp-panel-max, 340px);
+  overflow-y: auto;
+  padding: var(--lp-scroll-pt, 16px) 18px var(--lp-scroll-pb, 6px);
+  scrollbar-gutter: stable;
+}
+.lp-msgs { display: flex; flex-direction: column; gap: 12px; }
+.lp-user-row { display: flex; justify-content: flex-end; }
+.lp-user {
+  max-width: 80%; padding: 8px 13px; border-radius: 14px 14px 4px 14px;
+  font-size: 13px; line-height: 1.55; white-space: pre-wrap;
+}
+.lp-ai { font-size: 13px; line-height: 1.62; }
+.lp-bullet { display: flex; gap: 9px; padding: 2px 0; }
+.lp-bullet-dot {
+  flex: 0 0 auto; width: 4px; height: 4px; border-radius: 50%;
+  background: currentColor; opacity: .35; margin-top: 8px;
+}
+.lp-gap { height: 8px; }
+.lp-strong { font-weight: 600; }
+.lp-link { color: #7C3AED; text-decoration: underline; text-underline-offset: 2px; }
+.lp-tags { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 9px; }
+.lp-tags span { font-size: 10px; padding: 2.5px 7px; border-radius: 20px; }
+.lp-thinking { display: flex; align-items: center; gap: 9px; font-size: 12px; opacity: .55; }
+
+.lp-foot {
+  display: flex; justify-content: space-between; align-items: center;
+  height: var(--lp-foot-h, 36px);
+  padding: 0 10px;
+  font-size: 11px;
+}
+.lp-foot button {
+  display: flex; align-items: center; gap: 5px;
+  background: transparent; border: none; cursor: pointer;
+  font: inherit; font-size: 11px; color: inherit; opacity: .55;
+  padding: 4px 7px; border-radius: 6px;
+  transition: opacity .15s, background .15s;
+}
+.lp-foot button:hover { opacity: 1; background: rgba(127,127,140,.12); }
+.lp-foot svg { width: 11px; height: 11px; }
+
+/* ---------------- scrollbars ---------------- */
+.lp-light .lp-scroll::-webkit-scrollbar-thumb { background: rgba(0,0,0,.14); }
+.lp-dark  .lp-scroll::-webkit-scrollbar-thumb { background: rgba(255,255,255,.16); }
+
+/* Respect a system-level reduced-motion preference: the bar still morphs, but the
+   idle animations that loop forever stop. */
+@media (prefers-reduced-motion: reduce) {
+  .lp *, .lp *::before, .lp *::after { animation: none !important; }
+}

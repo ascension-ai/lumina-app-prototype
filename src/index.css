@@ -1,0 +1,150 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Transparent body for Electron transparent window — no white flash, no scrollbars.
+   The explicit height is load-bearing for the floating bar: the notch is bottom-anchored
+   with justify-end, which does nothing unless #root actually fills the window. */
+html, body, #root {
+  background: transparent !important;
+  overflow: hidden !important;
+  height: 100%;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #D1D5DB;
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #9CA3AF;
+}
+
+/* Electron title bar drag region */
+.titlebar-drag {
+  -webkit-app-region: drag;
+}
+
+.titlebar-no-drag {
+  -webkit-app-region: no-drag;
+}
+
+/* Smooth transitions */
+* {
+  transition-property: background-color, border-color, box-shadow;
+  transition-duration: 150ms;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Animation for feed items appearing */
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-slide-up {
+  animation: slideUp 0.3s ease-out forwards;
+}
+
+/* Animation for compile spinner */
+@keyframes spin-slow {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.animate-spin-slow {
+  animation: spin-slow 2s linear infinite;
+}
+
+/* DnD ghost styling */
+.dnd-ghost {
+  opacity: 0.85;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+  transform: scale(1.02);
+}
+
+/* Block pill shape */
+.block-pill {
+  @apply rounded-xl px-4 py-3 border cursor-grab active:cursor-grabbing;
+}
+
+/* Notion-style block hover */
+.block-pill:hover {
+  @apply shadow-card-hover;
+}
+
+/* Tab active indicator */
+.tab-active {
+  @apply border-b-2 border-lumina-accent text-lumina-accent font-medium;
+}
+
+.tab-inactive {
+  @apply border-b-2 border-transparent text-lumina-text-secondary hover:text-lumina-text;
+}
+
+/* Compile button glow */
+.compile-glow {
+  box-shadow: 0 0 20px rgba(124, 58, 237, 0.3);
+}
+
+/* ---- Drag regions ----
+   The floating bar itself is not draggable (it is docked), but any control the user
+   must be able to click keeps this escape hatch. */
+.floating-no-drag {
+  -webkit-app-region: no-drag;
+}
+
+/* The bar's own styling now lives with the component:
+   src/components/floating/pill-base.css + notch.css */
+
+/* Input focus ring */
+input:focus, textarea:focus, select:focus {
+  @apply outline-none ring-2 ring-lumina-accent/30 border-lumina-accent;
+}
+
+/* ---- React Flow overrides ---- */
+.react-flow__node {
+  cursor: grab;
+  /* Strip default node wrapper styling */
+  background: none !important;
+  border: none !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+  border-radius: 0 !important;
+}
+.react-flow__node:active {
+  cursor: grabbing;
+}
+.react-flow__node.selected {
+  background: none !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+.react-flow__controls {
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.06) !important;
+}
+.react-flow__controls-button {
+  border-color: #E5E5E5 !important;
+}
+.react-flow__edge-path {
+  stroke-opacity: 0.6;
+}
+.react-flow__background {
+  opacity: 0.5;
+}

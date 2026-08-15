@@ -1,0 +1,684 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Lumina — Floating Bar Prototypes</title>
+<style>
+/* ============================================================
+   Lumina pill gallery — 5 competing designs for the floating bar.
+   Every prototype runs the same state machine:
+     sleeping -> awake -> thinking -> answer
+   so you are comparing design, not implementation.
+   ============================================================ */
+
+:root {
+  --d: 0.52s;                                  /* master morph duration */
+  --d-fast: 0.22s;
+  --e: cubic-bezier(.32,.72,0,1);              /* the "seamless" ease */
+  --e-elastic: cubic-bezier(.34,1.4,.44,1);
+  --ink: #0d0d12;
+  --ink-2: #5b5b6b;
+  --line: rgba(0,0,0,.08);
+  --page: #f4f4f7;
+  --card: #ffffff;
+  --violet: #7C3AED;
+}
+body.slow { --d: 1.6s; --d-fast: .7s; }
+
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+body {
+  background: var(--page);
+  color: var(--ink);
+  font: 14px/1.5 -apple-system, BlinkMacSystemFont, "SF Pro Text", Inter, system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  padding-bottom: 80px;
+}
+
+/* ---------- page chrome ---------- */
+.wrap { max-width: 1180px; margin: 0 auto; padding: 0 24px; }
+
+header.top {
+  padding: 48px 0 20px;
+}
+header.top h1 {
+  font-size: 26px; letter-spacing: -.02em; margin: 0 0 8px; font-weight: 650;
+}
+header.top p {
+  margin: 0; color: var(--ink-2); max-width: 640px; font-size: 13.5px;
+}
+
+.toolbar {
+  position: sticky; top: 0; z-index: 50;
+  display: flex; flex-wrap: wrap; gap: 8px; align-items: center;
+  padding: 12px 24px; margin: 20px 0 28px;
+  background: rgba(244,244,247,.82);
+  backdrop-filter: blur(14px);
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+}
+.toolbar .grp { display: flex; gap: 6px; align-items: center; }
+.toolbar .sep { width: 1px; height: 20px; background: var(--line); margin: 0 6px; }
+.toolbar label { font-size: 11px; text-transform: uppercase; letter-spacing: .06em; color: var(--ink-2); margin-right: 2px; }
+
+button.ctl {
+  font: inherit; font-size: 12px; font-weight: 500;
+  padding: 6px 11px; border-radius: 8px;
+  border: 1px solid var(--line); background: #fff; color: var(--ink);
+  cursor: pointer; transition: background .15s, border-color .15s, color .15s;
+}
+button.ctl:hover { background: #f7f7fa; }
+button.ctl.on { background: var(--ink); border-color: var(--ink); color: #fff; }
+button.ctl.primary { background: var(--violet); border-color: var(--violet); color: #fff; }
+button.ctl.primary:hover { filter: brightness(1.08); }
+
+/* ---------- comparison strip ---------- */
+.strip {
+  display: grid; grid-template-columns: repeat(5, 1fr); gap: 14px;
+  margin-bottom: 40px;
+}
+.strip .cell {
+  background: var(--card); border: 1px solid var(--line); border-radius: 14px;
+  padding: 0; overflow: hidden;
+}
+.strip .cell .mini {
+  height: 74px; display: flex; align-items: center; justify-content: center;
+}
+.strip .cell .lbl {
+  padding: 8px 10px; font-size: 11px; color: var(--ink-2);
+  border-top: 1px solid var(--line); text-align: center;
+}
+
+/* ---------- cards ---------- */
+.grid { display: flex; flex-direction: column; gap: 34px; }
+
+.card {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  overflow: hidden;
+  box-shadow: 0 1px 2px rgba(0,0,0,.03), 0 8px 26px -18px rgba(0,0,0,.25);
+}
+.card > .head {
+  display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap;
+  padding: 20px 22px 14px;
+}
+.card .idx {
+  font-size: 11px; font-weight: 600; letter-spacing: .1em;
+  color: var(--violet); background: rgba(124,58,237,.08);
+  padding: 3px 8px; border-radius: 6px;
+}
+.card h2 { font-size: 17px; margin: 0; font-weight: 620; letter-spacing: -.01em; }
+.card .tag { color: var(--ink-2); font-size: 13px; }
+.card .head .spacer { flex: 1 1 auto; }
+
+/* the simulated desktop */
+.stage {
+  position: relative; height: 340px; overflow: hidden;
+  border-top: 1px solid var(--line); border-bottom: 1px solid var(--line);
+  display: flex; align-items: flex-end; justify-content: center;
+  transition: background .3s ease;
+}
+/* wallpaper variants, toggled globally on <body> */
+body[data-bg="dawn"]  .stage { background: linear-gradient(160deg,#ffd9c0 0%,#f7b3c2 34%,#a99ae0 68%,#5f7fd6 100%); }
+body[data-bg="night"] .stage { background: linear-gradient(165deg,#1b1b2b 0%,#241f3d 40%,#0f1020 100%); }
+body[data-bg="paper"] .stage { background: linear-gradient(180deg,#fbfbfd 0%,#eceef4 100%); }
+body[data-bg="busy"]  .stage { background: #eceef2; }
+
+/* "busy" backdrop: fake app window behind, to test legibility */
+.noise { position: absolute; inset: 0; opacity: 0; transition: opacity .3s; pointer-events: none; }
+body[data-bg="busy"] .noise { opacity: 1; }
+.noise .win {
+  position: absolute; left: 6%; top: 8%; right: 6%; bottom: 0;
+  background: #fff; border-radius: 12px 12px 0 0;
+  box-shadow: 0 10px 40px -14px rgba(0,0,0,.3);
+  overflow: hidden;
+}
+.noise .win .bar { height: 30px; background: #f6f6f9; border-bottom: 1px solid #e9e9ef; }
+.noise .win .ln { height: 9px; margin: 14px 22px; border-radius: 5px; background: #eceef3; }
+.noise .win .ln:nth-child(3) { width: 62%; }
+.noise .win .ln:nth-child(5) { width: 78%; background: #e6e2f6; }
+.noise .win .ln:nth-child(7) { width: 45%; }
+
+.card > .notes {
+  display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0;
+  font-size: 12.5px;
+}
+.card > .notes > div { padding: 14px 22px; border-right: 1px solid var(--line); }
+.card > .notes > div:last-child { border-right: 0; }
+.card > .notes b {
+  display: block; font-size: 10.5px; text-transform: uppercase; letter-spacing: .07em;
+  color: var(--ink-2); font-weight: 600; margin-bottom: 5px;
+}
+.card > .notes p { margin: 0; color: #33333f; }
+.card > .notes .warn { color: #9a5b00; }
+.card > .notes .good { color: #1d7a4c; }
+
+/* ============================================================
+   THE PILL — one shared skeleton, five skins.
+   Height is never set explicitly: it is the sum of three
+   collapsible rows, so every transition is a real morph.
+     .idle   height 26px -> 0
+     .panel  grid 0fr -> 1fr   (the answer)
+     .rowwrap grid 0fr -> 1fr  (the input row)
+   ============================================================ */
+.pill {
+  position: absolute; bottom: 20px; left: 50%;
+  transform: translateX(-50%);
+  display: flex; flex-direction: column;
+  overflow: hidden;
+  cursor: pointer;
+  transition:
+    width var(--d) var(--e),
+    border-radius var(--d) var(--e),
+    background-color var(--d-fast) ease,
+    box-shadow var(--d) ease,
+    transform var(--d) var(--e);
+  will-change: width, border-radius;
+}
+
+.idle {
+  flex: 0 0 auto; height: 26px; opacity: 1;
+  display: flex; align-items: center; justify-content: center; gap: 3px;
+  transition: height var(--d) var(--e), opacity var(--d-fast) ease;
+}
+.pill:not([data-state="sleeping"]) .idle { height: 0; opacity: 0; }
+
+.panel { display: grid; grid-template-rows: 0fr; transition: grid-template-rows var(--d) var(--e); }
+.panel > .clip { overflow: hidden; min-height: 0; }
+.pill[data-state="answer"] .panel { grid-template-rows: 1fr; }
+
+.rowwrap { display: grid; grid-template-rows: 0fr; transition: grid-template-rows var(--d) var(--e); }
+.rowwrap > .clip { overflow: hidden; min-height: 0; }
+.pill:not([data-state="sleeping"]) .rowwrap { grid-template-rows: 1fr; }
+
+.row {
+  display: flex; align-items: center; gap: 10px;
+  height: 50px; padding: 0 16px;
+  opacity: 0; transition: opacity var(--d-fast) ease;
+}
+.pill:not([data-state="sleeping"]) .row { opacity: 1; transition-delay: .1s; }
+
+.row .glyph { flex: 0 0 auto; width: 16px; height: 16px; opacity: .5; }
+.row .txt { flex: 1 1 auto; font-size: 13.5px; white-space: nowrap; overflow: hidden; }
+.row .txt.ph { opacity: .42; }
+.row .caret {
+  display: inline-block; width: 1.5px; height: 15px; vertical-align: -3px;
+  background: currentColor; margin-left: 1px; animation: blink 1.05s steps(1) infinite;
+}
+@keyframes blink { 0%,49% { opacity: 1 } 50%,100% { opacity: 0 } }
+.row .hint {
+  flex: 0 0 auto; font-size: 10.5px; letter-spacing: .04em;
+  padding: 3px 7px; border-radius: 6px; opacity: .55;
+}
+.pill[data-state="thinking"] .hint, .pill[data-state="answer"] .hint { display: none; }
+
+/* thinking waveform inside the row */
+.wave { display: none; gap: 3px; align-items: center; height: 16px; }
+.pill[data-state="thinking"] .wave { display: flex; }
+.wave i {
+  display: block; width: 2.5px; height: 6px; border-radius: 2px;
+  background: currentColor; opacity: .8;
+  animation: bounce 1s ease-in-out infinite;
+}
+.wave i:nth-child(2) { animation-delay: .12s }
+.wave i:nth-child(3) { animation-delay: .24s }
+.wave i:nth-child(4) { animation-delay: .36s }
+@keyframes bounce { 0%,100% { transform: scaleY(.55) } 50% { transform: scaleY(2.4) } }
+
+/* answer body */
+.answer { padding: 16px 18px 12px; }
+.answer .q {
+  font-size: 11px; letter-spacing: .04em; text-transform: uppercase;
+  opacity: .45; margin-bottom: 10px;
+}
+.answer .ln { font-size: 13px; line-height: 1.62; margin: 0 0 6px; }
+.answer .ln .b { font-weight: 600; }
+.answer ul { margin: 8px 0 0; padding: 0; list-style: none; }
+.answer li {
+  font-size: 13px; line-height: 1.6; padding-left: 15px; position: relative;
+  margin-bottom: 4px;
+  opacity: 0; transform: translateY(6px);
+  transition: opacity .34s ease, transform .34s var(--e);
+}
+.pill[data-state="answer"] .answer li { opacity: 1; transform: none; }
+.pill[data-state="answer"] .answer li:nth-child(1) { transition-delay: .16s }
+.pill[data-state="answer"] .answer li:nth-child(2) { transition-delay: .23s }
+.pill[data-state="answer"] .answer li:nth-child(3) { transition-delay: .30s }
+.answer li::before {
+  content: ''; position: absolute; left: 2px; top: 9px;
+  width: 4px; height: 4px; border-radius: 50%; background: currentColor; opacity: .35;
+}
+.answer .tags { display: flex; gap: 5px; margin-top: 12px; flex-wrap: wrap; }
+.answer .tags span {
+  font-size: 10px; padding: 2.5px 7px; border-radius: 20px; letter-spacing: .02em;
+}
+.answer .meta {
+  display: flex; justify-content: space-between; align-items: center;
+  font-size: 10.5px; margin-top: 12px; padding-top: 10px; opacity: .5;
+}
+
+/* ------------------------------------------------------------
+   A — WISPR CAPSULE.  Opaque graphite, tiny idle, one shape.
+   ------------------------------------------------------------ */
+.c-a {
+  width: 104px; border-radius: 999px;
+  background: #16161c; color: #ececf4;
+  box-shadow: 0 4px 16px -6px rgba(0,0,0,.5), inset 0 1px 0 rgba(255,255,255,.07);
+}
+.c-a:not([data-state="sleeping"]) {
+  width: 480px; border-radius: 26px;
+  box-shadow: 0 20px 48px -20px rgba(0,0,0,.6), 0 2px 8px -3px rgba(0,0,0,.35),
+              inset 0 1px 0 rgba(255,255,255,.09);
+}
+.c-a[data-state="answer"] { border-radius: 22px; }
+.c-a .idle i {
+  display: block; width: 2.5px; border-radius: 2px; background: #cfcbe8;
+  height: 5px; opacity: .55; animation: breathe 2.6s ease-in-out infinite;
+}
+.c-a .idle i:nth-child(2) { animation-delay: .2s }
+.c-a .idle i:nth-child(3) { animation-delay: .4s }
+.c-a .idle i:nth-child(4) { animation-delay: .6s }
+@keyframes breathe { 0%,100% { transform: scaleY(.7); opacity: .4 } 50% { transform: scaleY(1.9); opacity: .85 } }
+.c-a .row .hint { background: rgba(255,255,255,.08); }
+.c-a .answer { border-bottom: 1px solid rgba(255,255,255,.07); }
+.c-a .answer .tags span { background: rgba(167,139,250,.16); color: #c9b8ff; }
+
+/* ------------------------------------------------------------
+   B — EDGE HALO.  Idle is a 3px light seam. Light glass awake.
+   ------------------------------------------------------------ */
+.c-b {
+  width: 132px; border-radius: 999px;
+  background: rgba(255,255,255,0); color: var(--ink);
+  box-shadow: none;
+}
+.c-b .idle { height: 3px; }
+.c-b .idle .seam {
+  width: 100%; height: 3px; border-radius: 2px;
+  background: linear-gradient(90deg, transparent, rgba(124,58,237,.85) 25%, rgba(167,139,250,1) 50%, rgba(124,58,237,.85) 75%, transparent);
+  box-shadow: 0 0 14px 1px rgba(124,58,237,.5);
+  animation: glide 3.4s ease-in-out infinite;
+}
+@keyframes glide { 0%,100% { opacity: .55; transform: scaleX(.82) } 50% { opacity: 1; transform: scaleX(1) } }
+.c-b[data-state="sleeping"] .idle { height: 3px; }
+.c-b:not([data-state="sleeping"]) {
+  width: 540px; border-radius: 20px;
+  background: rgba(255,255,255,.97);
+  box-shadow: 0 24px 60px -26px rgba(40,20,80,.5), 0 1px 3px rgba(0,0,0,.07),
+              inset 0 0 0 1px rgba(124,58,237,.09);
+}
+.c-b .row .hint { background: rgba(0,0,0,.05); }
+.c-b .answer { border-bottom: 1px solid rgba(0,0,0,.06); }
+.c-b .answer .tags span { background: rgba(124,58,237,.08); color: #6d28d9; }
+/* the halo lingers under the open bar */
+.c-b::after {
+  content: ''; position: absolute; left: 12%; right: 12%; bottom: -1px; height: 2px;
+  background: linear-gradient(90deg, transparent, rgba(124,58,237,.55), transparent);
+  opacity: 0; transition: opacity var(--d) ease;
+}
+.c-b:not([data-state="sleeping"])::after { opacity: 1; }
+
+/* ------------------------------------------------------------
+   C — DOCK NOTCH.  Fused to the screen edge, Dynamic-Island style.
+   ------------------------------------------------------------ */
+.c-c {
+  bottom: 0;
+  width: 88px; border-radius: 12px 12px 0 0;
+  background: #101014; color: #eeeef6;
+  box-shadow: 0 -2px 14px -6px rgba(0,0,0,.55);
+}
+.c-c .idle { height: 20px; }
+.c-c .idle .grip {
+  width: 34px; height: 3px; border-radius: 2px; background: rgba(255,255,255,.35);
+  animation: pulse 2.8s ease-in-out infinite;
+}
+@keyframes pulse { 0%,100% { opacity: .35; width: 30px } 50% { opacity: .8; width: 40px } }
+.c-c:not([data-state="sleeping"]) {
+  width: 560px; border-radius: 22px 22px 0 0;
+  box-shadow: 0 -18px 50px -22px rgba(0,0,0,.7), inset 0 1px 0 rgba(255,255,255,.08);
+}
+.c-c .row { height: 54px; }
+.c-c .row .hint { background: rgba(255,255,255,.08); }
+.c-c .answer { border-bottom: 1px solid rgba(255,255,255,.07); }
+.c-c .answer .tags span { background: rgba(255,255,255,.09); color: #cfcadf; }
+
+/* ------------------------------------------------------------
+   D — SOFT SLAB.  The evolution of today's bar: light, calmer,
+   violet demoted to a single hairline.
+   ------------------------------------------------------------ */
+.c-d {
+  width: 168px; border-radius: 999px;
+  background: rgba(255,255,255,.9); color: #17171f;
+  box-shadow: 0 2px 10px -5px rgba(0,0,0,.28), inset 0 0 0 1px rgba(0,0,0,.05);
+}
+.c-d .idle { height: 10px; }
+.c-d .idle .dot {
+  width: 5px; height: 5px; border-radius: 50%; background: #a78bfa;
+  animation: throb 2.4s ease-in-out infinite;
+}
+@keyframes throb { 0%,100% { opacity: .45; transform: scale(.85) } 50% { opacity: 1; transform: scale(1.15) } }
+.c-d:not([data-state="sleeping"]) {
+  width: 520px; border-radius: 18px;
+  background: rgba(255,255,255,.99);
+  box-shadow: 0 18px 44px -22px rgba(20,16,40,.45), 0 1px 2px rgba(0,0,0,.06),
+              inset 0 0 0 1px rgba(0,0,0,.05);
+}
+.c-d .row .hint { background: #f2f2f6; }
+.c-d .answer { border-bottom: 1px solid rgba(0,0,0,.055); }
+.c-d .answer .tags span { background: #f3f0fb; color: #6d28d9; }
+
+/* ------------------------------------------------------------
+   E — ORB.  A 30px bead that stretches elastically into the bar.
+   ------------------------------------------------------------ */
+.c-e {
+  width: 30px; border-radius: 999px;
+  background: #141319; color: #f0eef8;
+  box-shadow: 0 5px 18px -6px rgba(0,0,0,.55), inset 0 0 0 1px rgba(167,139,250,.35);
+  transition:
+    width var(--d) var(--e-elastic),
+    border-radius var(--d) var(--e-elastic),
+    background-color var(--d-fast) ease,
+    box-shadow var(--d) ease;
+}
+.c-e .idle { height: 30px; }
+.c-e .idle .core {
+  width: 9px; height: 9px; border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #ddd3ff, #8b5cf6 70%);
+  box-shadow: 0 0 12px 2px rgba(139,92,246,.55);
+  animation: orb 2.8s ease-in-out infinite;
+}
+@keyframes orb { 0%,100% { transform: scale(.86); opacity: .8 } 50% { transform: scale(1.12); opacity: 1 } }
+.c-e:not([data-state="sleeping"]) {
+  width: 500px; border-radius: 28px;
+  box-shadow: 0 22px 52px -22px rgba(0,0,0,.65), inset 0 0 0 1px rgba(167,139,250,.22);
+}
+.c-e .row .hint { background: rgba(167,139,250,.14); }
+.c-e .answer { border-bottom: 1px solid rgba(255,255,255,.07); }
+.c-e .answer .tags span { background: rgba(167,139,250,.16); color: #c9b8ff; }
+
+/* mini pills in the comparison strip are the same skins, frozen asleep */
+.strip .pill { position: static; transform: none; bottom: auto; }
+
+/* per-card controls */
+.stagebar {
+  position: absolute; top: 10px; right: 10px; display: flex; gap: 6px;
+  opacity: 0; transition: opacity .2s;
+}
+.stage:hover .stagebar { opacity: 1; }
+.stagebar button {
+  font: 500 11px/1 -apple-system, system-ui, sans-serif;
+  padding: 6px 9px; border-radius: 7px; cursor: pointer;
+  border: 1px solid rgba(0,0,0,.1); background: rgba(255,255,255,.9); color: #222;
+}
+.stagebar button:hover { background: #fff; }
+
+footer.foot { color: var(--ink-2); font-size: 12.5px; margin-top: 40px; line-height: 1.7; }
+footer.foot code { background: #ececf1; padding: 1px 5px; border-radius: 4px; font-size: 12px; }
+</style>
+</head>
+<body data-bg="dawn">
+
+<div class="wrap">
+  <header class="top">
+    <h1>Floating bar — five directions</h1>
+    <p>
+      Each prototype is live and runs the real state machine: <b>sleeping → awake → thinking → answer</b>.
+      Click any pill to wake it, or hit <b>Play all</b>. Judge them on the two things that matter:
+      how invisible the sleeping state is, and whether the opening reads as <i>one shape growing</i>
+      rather than a panel appearing.
+    </p>
+  </header>
+</div>
+
+<div class="toolbar">
+  <div class="wrap" style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:0;max-width:1180px;width:100%">
+    <button class="ctl primary" id="playAll">▶ Play all</button>
+    <div class="grp">
+      <button class="ctl" data-all="sleeping">Sleeping</button>
+      <button class="ctl" data-all="awake">Awake</button>
+      <button class="ctl" data-all="thinking">Thinking</button>
+      <button class="ctl" data-all="answer">Answer</button>
+    </div>
+    <div class="sep"></div>
+    <label>Desktop</label>
+    <div class="grp">
+      <button class="ctl on" data-bg="dawn">Colour</button>
+      <button class="ctl" data-bg="night">Dark</button>
+      <button class="ctl" data-bg="paper">Light</button>
+      <button class="ctl" data-bg="busy">Busy app</button>
+    </div>
+    <div class="sep"></div>
+    <button class="ctl" id="slowmo">Slow motion</button>
+  </div>
+</div>
+
+<div class="wrap">
+  <p style="font-size:11px;text-transform:uppercase;letter-spacing:.07em;color:var(--ink-2);margin:0 0 10px;font-weight:600">
+    Sleeping state — what lives on the screen 95% of the time
+  </p>
+  <div class="strip" id="strip"></div>
+
+  <div class="grid" id="grid"></div>
+
+  <footer class="foot">
+    <p>
+      <b>Reality check for Electron.</b> The window is <code>transparent: true</code> with
+      <code>hasShadow: false</code>, so CSS <code>backdrop-filter</code> will <i>not</i> blur the desktop
+      behind it — every fill here is opaque or near-opaque by design. If you want genuine frosted glass,
+      that is a main-process change (<code>vibrancy: 'hud'</code> on macOS), not a CSS one.
+      Growth is anchored to the bottom edge because <code>resize-floating</code> keeps
+      <code>bottom = y + height</code> fixed — all five prototypes grow upward for that reason.
+    </p>
+    <p>
+      Concepts B and C need a main-process tweak: B wants a ~4px sleeping window instead of the current 56px
+      one (the sleeping seam is thinner than today's sliver), and C wants <code>y = screenH - height</code>
+      with no 20px gap so the notch fuses to the screen edge.
+    </p>
+  </footer>
+</div>
+
+<script>
+/* ------------------------------------------------------------------
+   One skeleton, five skins. Everything below is demo scaffolding —
+   the shipping version is React, this is just for judging the motion.
+   ------------------------------------------------------------------ */
+
+const CONCEPTS = [
+  {
+    key: 'a', cls: 'c-a', name: 'Wispr Capsule',
+    tag: 'Opaque graphite bead → one continuous capsule',
+    idle: '<i></i><i></i><i></i><i></i>',
+    why: 'Closest to Wispr Flow. Asleep it is a 104×26 bead with a barely-breathing waveform — it reads as a system affordance, not an app window. Waking is a pure width stretch of the same shape; nothing fades in except text.',
+    fit: 'Drop-in. Sleeping window can stay 520×56 since the bead is centred inside it. Only FloatingBar.jsx + the lumina-* tokens change.',
+    risk: 'good|Dark on a dark wallpaper needs the inset top highlight to stay readable — it is in the CSS. Violet survives only in the tool tags.'
+  },
+  {
+    key: 'b', cls: 'c-b', name: 'Edge Halo',
+    tag: 'A 3px light seam that inflates into light glass',
+    idle: '<span class="seam"></span>',
+    why: 'The most invisible idle of the five: a luminous hairline you read as ambient light, not UI. Waking inflates it vertically and horizontally at once, and a trace of the halo stays under the open bar so the two states are visibly the same object.',
+    fit: 'Keeps the current light theme and most of index.css. Wants a ~4px sleeping window height so the seam sits flush on the desktop.',
+    risk: 'warn|The seam is easy to miss entirely — if discoverability matters more than calm, this is the weakest idle.'
+  },
+  {
+    key: 'c', cls: 'c-c', name: 'Dock Notch',
+    tag: 'Fused to the screen edge, Dynamic-Island style',
+    idle: '<span class="grip"></span>',
+    why: 'Never floats. It grows out of the bottom edge with square bottom corners, so it belongs to the screen rather than hovering over it. The largest, most confident surface once open.',
+    fit: 'Needs y = screenH − height (drop the 20px gap) in getBottomCenterPosition. Everything else is CSS.',
+    risk: 'warn|Collides with the macOS Dock unless the Dock is hidden or on a side. Verify on the demo machine first.'
+  },
+  {
+    key: 'd', cls: 'c-d', name: 'Soft Slab',
+    tag: 'Today’s bar, calmed down — violet demoted to a hairline',
+    idle: '<span class="dot"></span>',
+    why: 'The conservative option. Same light identity you have now, but the sleeping sliver becomes a small rounded lozenge with one violet dot, the radius no longer jumps, and the shadow is a single soft drop instead of the layered one.',
+    fit: 'Smallest diff by far — mostly a rewrite of the lumina-container / lumina-sleep-bar tokens.',
+    risk: 'good|Lowest risk to the demo path. Also the least distinctive of the five.'
+  },
+  {
+    key: 'e', cls: 'c-e', name: 'Orb',
+    tag: 'A 30px bead that stretches elastically into the bar',
+    idle: '<span class="core"></span>',
+    why: 'The smallest possible idle footprint with a visible presence: a single glowing bead. The stretch uses an elastic ease, so opening has a bit of personality — it feels like the assistant leaning in.',
+    fit: 'Drop-in like A, but the elastic overshoot means the window must already be at full awake width (it is — 520px) before the morph starts.',
+    risk: 'warn|The overshoot is charming once and irritating on the hundredth open. Try it in slow motion before committing.'
+  },
+];
+
+const ANSWER_HTML = `
+  <div class="answer">
+    <div class="q">Swiggy · last 7 days</div>
+    <p class="ln">You made <span class="b">three commitments</span> and two are still open.</p>
+    <ul>
+      <li>Send the revised pricing sheet — promised Tue, no follow-up in the thread.</li>
+      <li>Intro Priya to the integrations team — still unscheduled.</li>
+      <li>Share the Q3 uptime report — <span class="b">done</span> Thursday.</li>
+    </ul>
+    <div class="tags"><span>slack</span><span>notion</span><span>meetings</span></div>
+    <div class="meta"><span>Searched 4 sources · 6 tool calls</span><span>Open app ↗</span></div>
+  </div>`;
+
+const QUESTION = 'what did I promise Swiggy last week?';
+
+function pillHTML(c, mini) {
+  return `
+  <div class="pill ${c.cls}" data-state="sleeping" data-key="${c.key}">
+    <div class="idle">${c.idle}</div>
+    ${mini ? '' : `
+    <div class="panel"><div class="clip">${ANSWER_HTML}</div></div>
+    <div class="rowwrap"><div class="clip">
+      <div class="row">
+        <svg class="glyph" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.6-3.6"/></svg>
+        <span class="txt ph">Ask Lumina anything</span>
+        <span class="wave"><i></i><i></i><i></i><i></i></span>
+        <span class="hint">⌥ Space</span>
+      </div>
+    </div></div>`}
+  </div>`;
+}
+
+/* comparison strip — sleeping only */
+document.getElementById('strip').innerHTML = CONCEPTS.map(c => `
+  <div class="cell">
+    <div class="mini" style="background:${c.key==='a'||c.key==='c'||c.key==='e' ? 'linear-gradient(150deg,#e9d6ff,#c9d4f7)' : 'linear-gradient(150deg,#ffe3d0,#e7d6ff)'}">
+      ${pillHTML(c, true)}
+    </div>
+    <div class="lbl">${c.name}</div>
+  </div>`).join('');
+
+/* full cards */
+document.getElementById('grid').innerHTML = CONCEPTS.map((c, i) => {
+  const [kind, riskText] = c.risk.split('|');
+  return `
+  <article class="card">
+    <div class="head">
+      <span class="idx">${String.fromCharCode(65 + i)}</span>
+      <h2>${c.name}</h2>
+      <span class="tag">${c.tag}</span>
+      <span class="spacer"></span>
+    </div>
+    <div class="stage">
+      <div class="noise"><div class="win"><div class="bar"></div><div class="ln"></div><div class="ln"></div><div class="ln"></div><div class="ln"></div><div class="ln"></div><div class="ln"></div></div></div>
+      <div class="stagebar">
+        <button data-play="${c.key}">▶ Play</button>
+        <button data-reset="${c.key}">Reset</button>
+      </div>
+      ${pillHTML(c, false)}
+    </div>
+    <div class="notes">
+      <div><b>Why it works</b><p>${c.why}</p></div>
+      <div><b>Fit with the codebase</b><p>${c.fit}</p></div>
+      <div><b>Watch out</b><p class="${kind}">${riskText}</p></div>
+    </div>
+  </article>`;
+}).join('');
+
+/* ---------------- state machine ---------------- */
+const timers = new Map();
+const pills = () => [...document.querySelectorAll('.stage .pill')];
+const byKey = k => document.querySelector(`.stage .pill[data-key="${k}"]`);
+const wait = ms => new Promise(r => setTimeout(r, ms));
+const speed = () => document.body.classList.contains('slow') ? 3 : 1;
+
+function setState(pill, state) {
+  pill.dataset.state = state;
+  const txt = pill.querySelector('.txt');
+  if (!txt) return;
+  if (state === 'sleeping' || state === 'awake') {
+    txt.className = 'txt ph';
+    txt.textContent = 'Ask Lumina anything';
+  }
+}
+
+async function typeInto(pill, text) {
+  const txt = pill.querySelector('.txt');
+  txt.className = 'txt';
+  txt.textContent = '';
+  for (let i = 0; i <= text.length; i++) {
+    if (pill.dataset.abort) return;
+    txt.innerHTML = text.slice(0, i) + '<span class="caret"></span>';
+    await wait((16 + Math.random() * 34) * speed());
+  }
+  txt.textContent = text;
+}
+
+async function play(pill) {
+  const run = (pill.dataset.run = String(Math.random()));
+  const alive = () => pill.dataset.run === run;
+  setState(pill, 'sleeping');
+  await wait(420 * speed()); if (!alive()) return;
+  setState(pill, 'awake');
+  await wait(560 * speed()); if (!alive()) return;
+  await typeInto(pill, QUESTION); if (!alive()) return;
+  await wait(260 * speed()); if (!alive()) return;
+  setState(pill, 'thinking');
+  await wait(1500 * speed()); if (!alive()) return;
+  setState(pill, 'answer');
+  await wait(6000 * speed()); if (!alive()) return;
+  setState(pill, 'sleeping');
+}
+
+/* click a pill to toggle it awake / asleep */
+document.addEventListener('click', e => {
+  const pill = e.target.closest('.stage .pill');
+  if (pill) {
+    pill.dataset.run = 'manual';
+    if (pill.dataset.state === 'sleeping') { setState(pill, 'awake'); }
+    else if (pill.dataset.state === 'awake') { typeInto(pill, QUESTION).then(() => setState(pill, 'thinking')); setTimeout(() => setState(pill, 'answer'), 2600 * speed()); }
+    else { setState(pill, 'sleeping'); }
+    return;
+  }
+  const playKey = e.target.dataset?.play;
+  if (playKey) { play(byKey(playKey)); return; }
+  const resetKey = e.target.dataset?.reset;
+  if (resetKey) { const p = byKey(resetKey); p.dataset.run = 'reset'; setState(p, 'sleeping'); return; }
+});
+
+document.getElementById('playAll').onclick = () => pills().forEach(p => play(p));
+
+document.querySelectorAll('[data-all]').forEach(b => b.onclick = () => {
+  pills().forEach(p => {
+    p.dataset.run = 'manual';
+    const s = b.dataset.all;
+    setState(p, s);
+    if (s === 'thinking' || s === 'answer') {
+      const t = p.querySelector('.txt');
+      t.className = 'txt'; t.textContent = QUESTION;
+    }
+  });
+});
+
+document.querySelectorAll('[data-bg]').forEach(b => b.onclick = () => {
+  document.body.dataset.bg = b.dataset.bg;
+  document.querySelectorAll('[data-bg]').forEach(x => x.classList.toggle('on', x === b));
+});
+
+document.getElementById('slowmo').onclick = e => {
+  document.body.classList.toggle('slow');
+  e.target.classList.toggle('on', document.body.classList.contains('slow'));
+};
+</script>
+</body>
+</html>

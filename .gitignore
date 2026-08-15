@@ -1,0 +1,20 @@
+# Dependencies
+node_modules/
+
+# Build output (regenerate with `npm run build`)
+dist/
+
+# Secrets — Lumina reads ANTHROPIC_API_KEY from ../.env (parent of this repo)
+.env
+.env.local
+
+# OS / editor
+.DS_Store
+*.log
+
+
+# Raw screen-recording sources — only the compressed mp4 is committed
+*.mov
+
+# Real implementations — never published
+private/

@@ -1,0 +1,35 @@
+{
+  "name": "lumina",
+  "version": "0.1.0",
+  "description": "Lumina \u2014 Your Autonomous Chief of Staff",
+  "main": "electron/main.js",
+  "scripts": {
+    "dev": "unset ELECTRON_RUN_AS_NODE && vite",
+    "build": "vite build",
+    "electron": "unset ELECTRON_RUN_AS_NODE && electron .",
+    "start": "unset ELECTRON_RUN_AS_NODE && concurrently \"vite\" \"wait-on http://localhost:5173 && electron .\"",
+    "start:all": "unset ELECTRON_RUN_AS_NODE && concurrently -k -n mcp,vite,app -c magenta,yellow,cyan \"(lsof -nP -iTCP:9515 -sTCP:LISTEN >/dev/null 2>&1 && echo '[mcp] already running on :9515' && sleep infinity || (cd ${MCP_SERVER_DIR:-../mcp-server} && npm run dev:mcp))\" \"vite\" \"wait-on -t 90000 tcp:127.0.0.1:9515 http://localhost:5173 && electron .\"",
+    "start:full": "unset ELECTRON_RUN_AS_NODE && concurrently -k -n mcp,graph,vite,app -c magenta,green,yellow,cyan \"(lsof -nP -iTCP:9515 -sTCP:LISTEN >/dev/null 2>&1 && echo '[mcp] already running on :9515' && sleep infinity || (cd ${MCP_SERVER_DIR:-../mcp-server} && npm run dev:mcp))\" \"(lsof -nP -iTCP:9516 -sTCP:LISTEN >/dev/null 2>&1 && echo '[graph] already running on :9516' && sleep infinity || (cd ../context_graph_v1 && npm run mcp:serve))\" \"vite\" \"wait-on -t 90000 tcp:127.0.0.1:9515 http://localhost:5173 && electron .\"",
+    "package": "vite build && electron-builder"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.89.0",
+    "@modelcontextprotocol/sdk": "^1.12.1",
+    "@xyflow/react": "^12.10.2",
+    "motion": "^12.38.0",
+    "node-cron": "^3.0.3"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^4.3.4",
+    "autoprefixer": "^10.4.20",
+    "concurrently": "^9.1.2",
+    "electron": "^33.3.1",
+    "postcss": "^8.5.1",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "tailwindcss": "^3.4.17",
+    "vite": "^6.0.0",
+    "wait-on": "^8.0.2",
+    "zustand": "^5.0.3"
+  }
+}

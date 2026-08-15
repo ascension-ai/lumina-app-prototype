@@ -1,0 +1,89 @@
+/*
+ * pills.css — the four alternates from the design review, gallery-only.
+ *
+ * The winner (Dock Notch) lives in notch.css and ships with the app; this file is
+ * imported by Gallery.jsx alone, so none of it reaches the Electron bundle. Kept so the
+ * comparison at design/pill-gallery still runs after the decision.
+ *
+ * Requires pill-base.css for the skeleton.
+ */
+
+/* ============ A — Wispr Capsule ============ */
+.lp-capsule {
+  background: #16161c; color: #ececf4;
+  box-shadow: 0 4px 16px -6px rgba(0,0,0,.5), inset 0 1px 0 rgba(255,255,255,.07);
+}
+.lp-capsule.lp-open, .lp-capsule[data-state="awake"] {
+  box-shadow: 0 20px 48px -20px rgba(0,0,0,.6), 0 2px 8px -3px rgba(0,0,0,.35),
+              inset 0 1px 0 rgba(255,255,255,.09);
+}
+.lp-capsule .lp-wave-idle i { background: #cfcbe8; }
+.lp-capsule .lp-hint { background: rgba(255,255,255,.08); }
+.lp-capsule .lp-user { background: linear-gradient(135deg,#7C3AED,#6D28D9); color: #fff; }
+.lp-capsule .lp-tags span { background: rgba(167,139,250,.16); color: #c9b8ff; }
+.lp-capsule .lp-foot { border-top: 1px solid rgba(255,255,255,.07); }
+
+/* ============ B — Edge Halo ============ */
+.lp-halo { background: transparent; color: #17171f; }
+.lp-halo[data-state="sleeping"] { box-shadow: none; }
+.lp-halo[data-state="awake"], .lp-halo[data-state="conversing"] {
+  background: rgba(255,255,255,.97);
+  box-shadow: 0 24px 60px -26px rgba(40,20,80,.5), 0 1px 3px rgba(0,0,0,.07),
+              inset 0 0 0 1px rgba(124,58,237,.09);
+}
+.lp-seam {
+  width: 100%; height: 3px; border-radius: 2px;
+  background: linear-gradient(90deg, transparent, rgba(124,58,237,.85) 25%,
+              rgba(167,139,250,1) 50%, rgba(124,58,237,.85) 75%, transparent);
+  box-shadow: 0 0 14px 1px rgba(124,58,237,.5);
+  animation: lp-glide 3.4s ease-in-out infinite;
+}
+@keyframes lp-glide { 0%,100% { opacity: .55; transform: scaleX(.82) } 50% { opacity: 1; transform: scaleX(1) } }
+.lp-halo .lp-hint { background: rgba(0,0,0,.05); }
+.lp-halo .lp-user { background: linear-gradient(135deg,#7C3AED,#6D28D9); color: #fff; }
+.lp-halo .lp-ai { color: #40404e; }
+.lp-halo .lp-tags span { background: rgba(124,58,237,.08); color: #6d28d9; }
+.lp-halo .lp-foot { border-top: 1px solid rgba(0,0,0,.06); }
+.lp-halo .lp-link { color: #7C3AED; }
+
+/* ============ D — Soft Slab ============ */
+.lp-slab {
+  background: rgba(255,255,255,.9); color: #17171f;
+  box-shadow: 0 2px 10px -5px rgba(0,0,0,.28), inset 0 0 0 1px rgba(0,0,0,.05);
+}
+.lp-slab[data-state="awake"], .lp-slab[data-state="conversing"] {
+  background: #fff;
+  box-shadow: 0 18px 44px -22px rgba(20,16,40,.45), 0 1px 2px rgba(0,0,0,.06),
+              inset 0 0 0 1px rgba(0,0,0,.05);
+}
+.lp-dot {
+  width: 5px; height: 5px; border-radius: 50%; background: #a78bfa;
+  animation: lp-throb 2.4s ease-in-out infinite;
+}
+@keyframes lp-throb { 0%,100% { opacity: .45; transform: scale(.85) } 50% { opacity: 1; transform: scale(1.15) } }
+.lp-slab .lp-hint { background: #f2f2f6; }
+.lp-slab .lp-user { background: linear-gradient(135deg,#7C3AED,#6D28D9); color: #fff; }
+.lp-slab .lp-ai { color: #3d3d4a; }
+.lp-slab .lp-tags span { background: #f3f0fb; color: #6d28d9; }
+.lp-slab .lp-foot { border-top: 1px solid rgba(0,0,0,.055); }
+.lp-slab .lp-link { color: #7C3AED; }
+
+/* ============ E — Orb ============ */
+.lp-orb {
+  background: #141319; color: #f0eef8;
+  box-shadow: 0 5px 18px -6px rgba(0,0,0,.55), inset 0 0 0 1px rgba(167,139,250,.35);
+}
+.lp-orb[data-state="awake"], .lp-orb[data-state="conversing"] {
+  box-shadow: 0 22px 52px -22px rgba(0,0,0,.65), inset 0 0 0 1px rgba(167,139,250,.22);
+}
+.lp-core {
+  width: 9px; height: 9px; border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #ddd3ff, #8b5cf6 70%);
+  box-shadow: 0 0 12px 2px rgba(139,92,246,.55);
+  animation: lp-orb 2.8s ease-in-out infinite;
+}
+@keyframes lp-orb { 0%,100% { transform: scale(.86); opacity: .8 } 50% { transform: scale(1.12); opacity: 1 } }
+.lp-orb .lp-hint { background: rgba(167,139,250,.14); }
+.lp-orb .lp-user { background: rgba(167,139,250,.18); color: #efeaff; }
+.lp-orb .lp-tags span { background: rgba(167,139,250,.16); color: #c9b8ff; }
+.lp-orb .lp-foot { border-top: 1px solid rgba(255,255,255,.07); }
